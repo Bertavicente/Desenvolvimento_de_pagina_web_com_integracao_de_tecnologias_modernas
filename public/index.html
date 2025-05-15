@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lista de Compras</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <script>
+        // Verifica autenticação antes de carregar a página
+        if (!localStorage.getItem('token')) {
+            window.location.href = '/login';
+        }
+    </script>
+    <header>
+        <h1>Lista de Compras</h1>
+        <nav>
+            <a href="/index">Home</a>
+            <a href="/chat">Chat</a>
+            <a href="/summary">Resumo</a>
+            <a href="/admin">Admin</a>
+            <a href="/logout">Sair</a>
+        </nav>
+    </header>
+    <main>
+        <form id="item-form">
+            <label for="name">Nome:</label>
+            <input type="text" id="name" name="name" required>
+            <label for="quantity">Quantidade:</label>
+            <input type="number" id="quantity" name="quantity" required>
+            <label for="price">Preço:</label>
+            <input type="number" id="price" name="price" step="0.01" required>
+            <label for="time">Data:</label>
+            <input type="date" id="time" name="time" required>
+            <label for="place">Local:</label>
+            <input type="text" id="place" name="place" required>
+            <label for="category">Categoria:</label>
+            <select id="category" name="category">
+                <option value="Alimentos">Alimentos</option>
+                <option value="Higiene">Higiene</option>
+                <option value="Outros">Outros</option>
+            </select>
+            <button type="submit">Adicionar Item</button>
+        </form>
+        <table id="items-table">
+            <thead>
+                <tr>
+                    <th>Nome</th>
+                    <th>Quantidade</th>
+                    <th>Preço</th>
+                    <th>Data</th>
+                    <th>Local</th>
+                    <th>Categoria</th>
+                    <th>Ações</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+    </main>
+    <script>
+        async function fetchItems() {
+            const response = await fetch('/api/items', {
+                headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+            });
+            const items = await response.json();
+            const tbody = document.querySelector('#items-table tbody');
+            tbody.innerHTML = '';
+            items.forEach(item => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${item.name}</td>
+                    <td>${item.quantity}</td>
+                    <td>${item.price}</td>
+                    <td>${item.time}</td>
+                    <td>${item.place}</td>
+                    <td>${item.category}</td>
+                    <td>
+                        <button onclick="editItem(${item.id})">Editar</button>
+                        <button onclick="deleteItem(${item.id})">Remover</button>
+                    </td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+
+        document.getElementById('item-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const item = {
+                name: document.getElementById('name').value,
+                quantity: document.getElementById('quantity').value,
+                price: document.getElementById('price').value,
+                time: document.getElementById('time').value,
+                place: document.getElementById('place').value,
+                category: document.getElementById('category').value,
+            };
+            await fetch('/api/items', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${localStorage.getItem('token')}`
+                },
+                body: JSON.stringify(item)
+            });
+            fetchItems();
+        });
+
+        async function editItem(id) {
+            const response = await fetch('/api/items', {
+                headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+            });
+            const items = await response.json();
+            const item = items.find(i => i.id === id);
+            if (item) {
+                document.getElementById('name').value = item.name;
+                document.getElementById('quantity').value = item.quantity;
+                document.getElementById('price').value = item.price;
+                document.getElementById('time').value = item.time;
+                document.getElementById('place').value = item.place;
+                document.getElementById('category').value = item.category;
+                const form = document.getElementById('item-form');
+                form.onsubmit = async (e) => {
+                    e.preventDefault();
+                    await fetch(`/api/items/${id}`, {
+                        method: 'PUT',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${localStorage.getItem('token')}`
+                        },
+                        body: JSON.stringify({
+                            name: document.getElementById('name').value,
+                            quantity: document.getElementById('quantity').value,
+                            price: document.getElementById('price').value,
+                            time: document.getElementById('time').value,
+                            place: document.getElementById('place').value,
+                            category: document.getElementById('category').value,
+                        })
+                    });
+                    fetchItems();
+                    form.onsubmit = null;
+                };
+            }
+        }
+
+        async function deleteItem(id) {
+            await fetch(`/api/items/${id}`, {
+                method: 'DELETE',
+                headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+            });
+            fetchItems();
+        }
+
+        fetchItems();
+    </script>
+</body>
+</html>

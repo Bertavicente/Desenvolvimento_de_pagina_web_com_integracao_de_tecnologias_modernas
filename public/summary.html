@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Resumo</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <header>
+        <h1>Resumo</h1>
+        <nav>
+            <a href="/index">Home</a>
+            <a href="/chat">Chat</a>
+            <a href="/summary">Resumo</a>
+            <a href="/admin">Admin</a>
+            <a href="/logout">Sair</a>
+        </nav>
+    </header>
+    <main>
+        <h2>Resumo das Compras</h2>
+        <div id="summary"></div>
+    </main>
+    <script>
+        async function fetchSummary() {
+            const response = await fetch('/api/admin/report/current_summary', {
+                headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+            });
+            const summary = await response.json();
+            document.getElementById('summary').innerHTML = `
+                <p>Total: ${summary.total} MZN</p>
+                <p>Por Categoria: ${JSON.stringify(summary.by_category)}</p>
+                <p>Por Local: ${JSON.stringify(summary.by_place)}</p>
+            `;
+        }
+        fetchSummary();
+    </script>
+</body>
+</html>

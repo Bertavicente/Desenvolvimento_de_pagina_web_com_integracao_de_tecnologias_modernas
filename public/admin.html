@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <header>
+        <h1>Admin</h1>
+        <nav>
+            <a href="/index">Home</a>
+            <a href="/chat">Chat</a>
+            <a href="/summary">Resumo</a>
+            <a href="/admin">Admin</a>
+            <a href="/logout">Sair</a>
+        </nav>
+    </header>
+    <main>
+        <h2>Usuários</h2>
+        <table id="users-table">
+            <thead>
+                <tr>
+                    <th>Usuário</th>
+                    <th>Perfil</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+    </main>
+    <script>
+        async function fetchUsers() {
+            const response = await fetch('/api/admin/users', {
+                headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+            });
+            const users = await response.json();
+            const tbody = document.querySelector('#users-table tbody');
+            tbody.innerHTML = '';
+            users.forEach(user => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${user.username}</td>
+                    <td>${user.role}</td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+        fetchUsers();
+    </script>
+</body>
+</html>

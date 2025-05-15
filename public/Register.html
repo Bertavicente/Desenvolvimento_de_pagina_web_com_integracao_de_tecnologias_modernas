@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Registro</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <header>
+        <h1>Registro</h1>
+        <nav>
+            <a href="/login">Login</a>
+            <a href="/about">Sobre</a>
+        </nav>
+    </header>
+    <main>
+        <form id="register-form">
+            <label for="username">Usuário:</label>
+            <input type="text" id="username" name="username" required>
+            <label for="password">Senha:</label>
+            <input type="password" id="password" name="password" required>
+            <label for="perfil">Perfil:</label>
+            <select id="perfil" name="perfil">
+                <option value="user">Usuário</option>
+                <option value="admin">Administrador</option>
+            </select>
+            <button type="submit">Registrar</button>
+        </form>
+        <p id="error-message" style="color: red;"></p>
+    </main>
+    <script>
+        document.getElementById('register-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            const perfil = document.getElementById('perfil').value;
+            const errorMessage = document.getElementById('error-message');
+
+            errorMessage.textContent = ''; // Limpa mensagens anteriores
+
+            try {
+                const response = await fetch('/api/register', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ username, password, perfil }),
+                });
+                const data = await response.json();
+                if (response.ok) {
+                    alert('Registro realizado com sucesso! Redirecionando para o login...');
+                    window.location.href = '/login';
+                } else {
+                    errorMessage.textContent = data.message || 'Erro ao registrar';
+                }
+            } catch (error) {
+                errorMessage.textContent = 'Erro ao conectar ao servidor. Verifique se o servidor está rodando.';
+                console.error('Erro:', error);
+            }
+        });
+    </script>
+</body>
+</html>
